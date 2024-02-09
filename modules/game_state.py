@@ -204,12 +204,13 @@ class GameState:
                 return GameState(new_map, self.current_cost + 1)
             else:
                 print("Box push invalid: Blocked")
+                pass
         return self
 
     def check_solved(self):
         """Check if the game is solved"""
         for row in self.map:
             for cell in row:
-                if cell == '*':
-                    return True
-        return False
+                if cell == '.' or cell == '+':
+                    return False
+        return True

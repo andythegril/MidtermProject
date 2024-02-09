@@ -143,9 +143,14 @@ class Solver(object):
         priority_queue.put((self.initial_state.get_total_cost(), self.states_generated, self.initial_state, []))
         
         print(f"Initial queue: {priority_queue.queue}")
+        print("Solving...")
         while not priority_queue.empty():
-            self.expanded_nodes += 1
             cost, _, current_node, path = priority_queue.get()
+
+            if current_node in visited:
+                continue
+
+            self.expanded_nodes += 1
 
             print(f"Exploring state with solution {path} which, considering heuristics, costs {cost}")
 
@@ -159,6 +164,9 @@ class Solver(object):
             for direction in ['U', 'D', 'L', 'R']:
                 new_state = current_node.move(direction)
                 self.new_state = new_state
+                if new_state is None:
+                    continue
+
                 self.states_generated += 1
                 if new_state is not current_node and new_state not in visited:
                     priority_queue.put((new_state.get_total_cost(), self.states_generated, new_state, path + [direction]))
@@ -176,10 +184,14 @@ class Solver(object):
         
         print(f"Initial queue: {priority_queue.queue}")
         while not priority_queue.empty():
-            self.expanded_nodes += 1
             cost, _, current_node, path = priority_queue.get()
 
             print(f"Exploring state with solution {path}, costing {cost}")
+
+            if current_node in visited:
+                continue
+
+            self.expanded_nodes += 1
 
             if current_node.is_solved:
                 self.solution = path
@@ -190,7 +202,6 @@ class Solver(object):
 
             for direction in ['U', 'D', 'L', 'R']:
                 new_state = current_node.move(direction)
-                self.new_state = new_state
                 self.states_generated += 1
                 if new_state is not current_node and new_state not in visited:
                     priority_queue.put((new_state.current_cost, self.states_generated, new_state, path + [direction]))
@@ -208,10 +219,14 @@ class Solver(object):
         
         print(f"Initial queue: {priority_queue.queue}")
         while not priority_queue.empty():
-            self.expanded_nodes += 1
             h, _, current_node, path = priority_queue.get()
 
             print(f"Exploring state with solution {path} with heuristic {h}")
+
+            if current_node in visited:
+                continue
+
+            self.expanded_nodes += 1
 
             if current_node.is_solved:
                 self.solution = path
@@ -222,14 +237,54 @@ class Solver(object):
 
             for direction in ['U', 'D', 'L', 'R']:
                 new_state = current_node.move(direction)
-                self.new_state = new_state
                 self.states_generated += 1
                 if new_state is not current_node and new_state not in visited:
                     priority_queue.put((new_state.get_heuristic(), self.states_generated, new_state, path + [direction]))
         return None
 
     def custom(self):
-        return ['U', 'U',]
+        # Iterative-deepening A-star attempt
+        depth = self.initial_state.get_heuristic() * 10
+        visited = [self.initial_state]
+        self.states_generated = 0
+        self.expanded_nodes = 0
+        
+        while True:
+            result, f = self.idastar(visited, 0, depth, [])
+            if result:
+                print("Success")
+                self.solution = result
+                self.moves_to_target = len(result)
+                return result
+            if f is None:
+                print("Failed")
+                return None
+            depth = f
+    
+    def idastar(self, visited, g, depth, path):
+        # recursive IDA*
+        state = visited[-1]
+        f = g + state.get_heuristic()
+        if f > depth:
+            return None, f
+        if state.is_solved:
+            return path, depth
+        min = None
+        for direction in ['U', 'D', 'R', 'L']:
+            new_state = state.move(direction)
+            if new_state is None:
+                continue
+            if new_state not in visited:
+                visited.append(new_state)
+                result, _f = self.idastar(visited, g + 1, depth, path + [direction])
+                if result:
+                    return result, depth
+                if _f is not None and (min is None or _f < min):
+                    minimum = _f
+                visited.pop(-1)
+            
+        return None, min
+
 
     def get_solution(self):
         return self.solution

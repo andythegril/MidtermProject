@@ -95,7 +95,7 @@ class GameVisualization(object):
             self.game_state = self.game_state.move(self.solution[i])
             self.draw(self.solution[i])
 
-            self.wait(500)
+            self.wait(100)
 
     def wait(self, milliseconds):
         last = pygame.time.get_ticks()
