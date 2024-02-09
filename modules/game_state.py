@@ -75,7 +75,17 @@ class GameState:
     def copy_map_with_player_position(self, new_x, new_y):
         new_map = [row[:] for row in self.map]
         new_map[self.player[0]][self.player[1]] = ' '
-        new_map[new_x][new_y] = '@'
+
+        if self.is_target((self.player[0], self.player[1])):
+            new_map[self.player[0]][self.player[1]] = '.'
+        else:
+            new_map[self.player[0]][self.player[1]] = ' '
+
+        if self.is_target((new_x, new_y)):
+            new_map[new_x][new_y] = '+'
+        else:
+            new_map[new_x][new_y] = '@'
+        
         return new_map
 
     def copy_map_with_player_and_box_position(self, new_x, new_y, beyond_x, beyond_y):
