@@ -94,15 +94,24 @@ class GameVisualization(object):
         for i in range(len(self.solution)):
             self.game_state = self.game_state.move(self.solution[i])
             self.draw(self.solution[i])
-            time.sleep(0.5)
+
+            self.wait(500)
+
+    def wait(self, milliseconds):
+        last = pygame.time.get_ticks()
+        while pygame.time.get_ticks() - last < milliseconds:
+            self.process_events()
+    
+    def process_events(self):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+        self.clock.tick(60)
 
     def start(self):
         self.init_pygame()
         self.draw()
         self.draw_solution()
         while True:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-            self.clock.tick(60)
+            self.process_events()
