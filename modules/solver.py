@@ -11,6 +11,7 @@
 
 import time
 from collections import deque
+from queue import PriorityQueue
 
 
 class Solver(object):
@@ -58,6 +59,8 @@ class Solver(object):
         print("Starting BFS")
         queue = deque([(self.initial_state, [])])
         visited = set()
+        self.states_generated = 0
+        self.expanded_nodes = 0
         print(f"Initial queue: {queue}")
         while queue:
             state, solution = queue.popleft()
@@ -130,13 +133,100 @@ class Solver(object):
         return None
 
     def astar(self):
-        pass
+        print("Starting A-star")
+        visited = set()
+        priority_queue = PriorityQueue()
+
+        self.states_generated = 0
+        self.expanded_nodes = 0
+        # Tuple (total cost, order number of state, state object)
+        priority_queue.put((self.initial_state.get_total_cost(), self.states_generated, self.initial_state, []))
+        
+        print(f"Initial queue: {priority_queue.queue}")
+        while not priority_queue.empty():
+            self.expanded_nodes += 1
+            cost, _, current_node, path = priority_queue.get()
+
+            print(f"Exploring state with solution {path} which, considering heuristics, costs {cost}")
+
+            if current_node.is_solved:
+                self.solution = path
+                self.moves_to_target = len(path)
+                return path
+            
+            visited.add(current_node)
+
+            for direction in ['U', 'D', 'L', 'R']:
+                new_state = current_node.move(direction)
+                self.new_state = new_state
+                self.states_generated += 1
+                if new_state is not current_node and new_state not in visited:
+                    priority_queue.put((new_state.get_total_cost(), self.states_generated, new_state, path + [direction]))
+        return None
 
     def ucs(self):
-        pass
+        print("Starting UCS")
+        visited = set()
+        priority_queue = PriorityQueue()
+
+        self.states_generated = 0
+        self.expanded_nodes = 0
+        # Tuple (current path cost, order number of state, state object)
+        priority_queue.put((self.initial_state.current_cost, self.states_generated, self.initial_state, []))
+        
+        print(f"Initial queue: {priority_queue.queue}")
+        while not priority_queue.empty():
+            self.expanded_nodes += 1
+            cost, _, current_node, path = priority_queue.get()
+
+            print(f"Exploring state with solution {path}, costing {cost}")
+
+            if current_node.is_solved:
+                self.solution = path
+                self.moves_to_target = len(path)
+                return path
+            
+            visited.add(current_node)
+
+            for direction in ['U', 'D', 'L', 'R']:
+                new_state = current_node.move(direction)
+                self.new_state = new_state
+                self.states_generated += 1
+                if new_state is not current_node and new_state not in visited:
+                    priority_queue.put((new_state.current_cost, self.states_generated, new_state, path + [direction]))
+        return None
 
     def greedy(self):
-        pass
+        print("Starting Greedy")
+        visited = set()
+        priority_queue = PriorityQueue()
+
+        self.states_generated = 0
+        self.expanded_nodes = 0
+        # Tuple (heuristic, order number of state, state object)
+        priority_queue.put((self.initial_state.get_heuristic(), self.states_generated, self.initial_state, []))
+        
+        print(f"Initial queue: {priority_queue.queue}")
+        while not priority_queue.empty():
+            self.expanded_nodes += 1
+            h, _, current_node, path = priority_queue.get()
+
+            print(f"Exploring state with solution {path} with heuristic {h}")
+
+            if current_node.is_solved:
+                self.solution = path
+                self.moves_to_target = len(path)
+                return path
+            
+            visited.add(current_node)
+
+            for direction in ['U', 'D', 'L', 'R']:
+                new_state = current_node.move(direction)
+                self.new_state = new_state
+                self.states_generated += 1
+                if new_state is not current_node and new_state not in visited:
+                    priority_queue.put((new_state.get_heuristic(), self.states_generated, new_state, path + [direction]))
+        return None
 
     def custom(self):
         return ['U', 'U',]
