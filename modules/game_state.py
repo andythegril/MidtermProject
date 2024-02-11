@@ -33,6 +33,11 @@ class GameState:
     def __eq__(self, other):
         return isinstance(other, type(self)) and self.map == other.map and self.player == other.player
 
+    # error Answer by Michal Polovka: heapq push TypeError: '<' not supported between instances
+    # https://stackoverflow.com/questions/53554199/heapq-push-typeerror-not-supported-between-instances
+    def __lt__(self, other):
+        return (self.current_cost + self.get_heuristic()) < (other.current_cost + other.get_heuristic())
+
     def __hash__(self):
         return hash((tuple(tuple(row) for row in self.map), self.player, tuple(self.boxes)))
 
@@ -130,6 +135,10 @@ class GameState:
         """Get the heuristic for the game state
             Note: the heuristic is the sum of the distances from all the boxes to their nearest targets
         """
+        # check if target is populated/retained
+        if not self.targets:
+            return float('inf')
+
         heuristic = 0
         for box in self.boxes:
             nearest_target_distance = min(abs(box[0] - target[0]) + abs(box[1] - target[1]) for target in self.targets)

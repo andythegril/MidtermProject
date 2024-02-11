@@ -10,6 +10,7 @@
 # """
 
 import time
+import heapq
 from collections import deque
 
 
@@ -54,6 +55,7 @@ class Solver(object):
         else:
             print("No solution found.")
 
+    # ref from W4-Lab revision from Mr.Le
     def bfs(self):
         print("Starting BFS")
         queue = deque([(self.initial_state, [])])
@@ -104,7 +106,7 @@ class Solver(object):
         return None
 
     def dfs_limited_depth(self, max_depth=10):
-        stack = [(self.initial_state, [], 0)]  # Include depth in the stack tuple
+        stack = [(self.initial_state, [], 0)]
         visited = set()
         self.states_generated = 0
         self.expanded_nodes = 0
@@ -129,15 +131,93 @@ class Solver(object):
                     stack.append((new_state, path + [direction], depth + 1))
         return None
 
+    # ref from https://stackoverflow.com/questions/62531674/speed-up-a-implementation-in-python
     def astar(self):
-        pass
+        open_list = []
+        heapq.heappush(open_list, (0 + self.initial_state.get_heuristic(), 0, self.initial_state, []))
+        visited = set()
+        self.states_generated = 0
+        self.expanded_nodes = 0
+        while open_list:
+            # ignore unpacked values https://python.oneoffcoder.com/tuple-ignoring.html
+            # ignore total_cost of the current value as it does not impact future decisions
+            _, cost, state, path = heapq.heappop(open_list)
+            self.expanded_nodes += 1
+            if state.check_solved():
+                self.moves_to_target = len(path)
+                return path
+            if state in visited:
+                continue
+            visited.add(state)
+
+            for direction in ['U', 'D', 'L', 'R']:
+                new_state = state.move(direction)
+                self.states_generated += 1
+                if new_state not in visited:
+                    new_cost = cost + 1
+                    total_cost = new_cost + new_state.get_heuristic()
+                    heapq.heappush(open_list, (total_cost, new_cost, new_state, path + [direction]))
+        return None
 
     def ucs(self):
-        pass
+        open_list = []
+        heapq.heappush(open_list, (0, self.initial_state, []))
+        visited = set()
+        self.states_generated = 0
+        self.expanded_nodes = 0
+
+        while open_list:
+            cost, state, path = heapq.heappop(open_list)
+            self.expanded_nodes += 1
+
+            if state in visited and state != self.initial_state:
+                continue
+
+            visited.add(state)
+
+            if state.check_solved():
+                self.moves_to_target = len(path)
+                return path
+
+            for direction in ['U', 'D', 'L', 'R']:
+                new_state = state.move(direction)
+                self.states_generated += 1
+
+                if new_state not in visited or new_state == self.initial_state:
+                    new_cost = cost + 1
+                    new_path = path + [direction]
+                    heapq.heappush(open_list, (new_cost, new_state, new_path))
+        return None
 
     def greedy(self):
-        pass
+        open_list = []
+        heapq.heappush(open_list, (self.initial_state.get_heuristic(), self.initial_state, []))
+        visited = set()
+        self.states_generated = 0
+        self.expanded_nodes = 0
 
+        while open_list:
+            heuristic, state, path = heapq.heappop(open_list)
+            self.expanded_nodes += 1
+
+            if state in visited:
+                continue
+
+            visited.add(state)
+
+            if state.check_solved():
+                self.moves_to_target = len(path)
+                return path
+
+            for direction in ['U', 'D', 'L', 'R']:
+                new_state = state.move(direction)
+                self.states_generated += 1
+
+                if new_state not in visited:
+                    new_heuristic = new_state.get_heuristic()
+                    heapq.heappush(open_list, (new_heuristic, new_state, path + [direction]))
+
+    # Genetic Algorithms
     def custom(self):
         return ['U', 'U',]
 

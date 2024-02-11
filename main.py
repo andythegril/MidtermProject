@@ -27,7 +27,10 @@ if __name__ == '__main__':
     # strategy = args.strategy
     # strategy = 'bfs'
     # strategy = 'dfs'
-    strategy = 'dfs_limited_depth'
+    # strategy = 'dfs_limited_depth'
+    # strategy = 'astar'
+    # strategy = 'ucs'
+    strategy = 'greedy'
     print(f"Using strategy: {strategy}")
     solver = Solver(game_state, strategy)
     solver.solve()
