@@ -207,8 +207,8 @@ class GameState:
 
     def check_solved(self):
         """Check if the game is solved"""
-        for row in self.map:
-            for cell in row:
-                if cell == '*':
-                    return True
-        return False
+        for box in self.boxes:
+            x, y = box
+            if self.map[x][y] != "*":
+                return False
+        return True

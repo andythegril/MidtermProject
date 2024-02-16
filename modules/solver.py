@@ -217,9 +217,61 @@ class Solver(object):
                     new_heuristic = new_state.get_heuristic()
                     heapq.heappush(open_list, (new_heuristic, new_state, path + [direction]))
 
-    # Genetic Algorithms
     def custom(self):
-        return ['U', 'U',]
+        # Iterative-deepening A-star
+        bound = self.initial_state.get_heuristic()
+        self.states_generated = 0
+        self.expanded_nodes = 0
+        previous_expanded_nodes = 0
+
+        print(f"Starting IDA* with initial threshold is {bound}")
+
+        min_cost = 0
+        node_path = [self.initial_state]
+
+        while min_cost != float('inf'):
+            # Perform a DFS search with specified bounds (threshold), which increases after each iteration.
+            path, min_cost = self.__idastar_search(node_path, self.initial_state.current_cost, bound, [])
+            if min_cost == -1:
+                return path
+
+            previous_expanded_nodes += self.expanded_nodes - previous_expanded_nodes
+            bound = min_cost
+        return None
+
+    def __idastar_search(self, node_path, g, bound, path):
+        # Recursive DFS function that assists IDA* algorithm
+        state = node_path[-1]
+        f = state.get_total_cost()
+        if f > bound:
+            return None, f
+
+        self.expanded_nodes += 1
+
+        # print(f"Exploring state with solution {path}, costing {f} at threshold {bound}")
+
+        if state.is_solved:
+            self.solution = path
+            self.moves_to_target = len(path)
+            return path, -1
+
+        min_total_cost = float("inf")
+        for direction in ['U', 'D', 'R', 'L']:
+            new_state = state.move(direction)
+            if new_state is state:
+                continue
+            if new_state in node_path:
+                continue
+
+            self.states_generated += 1
+            node_path.append(new_state)
+            new_path, tmp = self.__idastar_search(node_path, new_state.current_cost, bound, path + [direction])
+            if tmp == -1:
+                return new_path, -1
+            if tmp < min_total_cost:
+                min_total_cost = tmp
+            node_path.pop(-1)
+        return None, min_total_cost
 
     def get_solution(self):
         return self.solution

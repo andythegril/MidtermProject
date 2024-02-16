@@ -30,7 +30,8 @@ if __name__ == '__main__':
     # strategy = 'dfs_limited_depth'
     # strategy = 'astar'
     # strategy = 'ucs'
-    strategy = 'greedy'
+    # strategy = 'greedy'
+    strategy = 'custom'
     print(f"Using strategy: {strategy}")
     solver = Solver(game_state, strategy)
     solver.solve()
