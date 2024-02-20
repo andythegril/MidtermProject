@@ -53,5 +53,5 @@ The performance of each algorithm has been evaluated based on several metrics:
 - Number of moves to reach the target state
 - Running time
   
-The detailed performance comparison can be found in our [report]([url](https://drive.google.com/file/d/1SMGKIV4hZhO1iQh1qw-GYAKvbyohXOF4/view?usp=sharing)https://drive.google.com/file/d/1SMGKIV4hZhO1iQh1qw-GYAKvbyohXOF4/view?usp=sharing).
+The detailed performance comparison can be found in our [report](https://drive.google.com/file/d/1SMGKIV4hZhO1iQh1qw-GYAKvbyohXOF4/view?usp=sharing).
 
