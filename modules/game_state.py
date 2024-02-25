@@ -80,7 +80,16 @@ class GameState:
     def copy_map_with_player_position(self, new_x, new_y):
         new_map = [row[:] for row in self.map]
         new_map[self.player[0]][self.player[1]] = ' '
-        new_map[new_x][new_y] = '@'
+
+        if self.is_target((self.player[0], self.player[1])):
+            new_map[self.player[0]][self.player[1]] = '.'
+        else:
+            new_map[self.player[0]][self.player[1]] = ' '
+
+        if self.is_target((new_x, new_y)):
+            new_map[new_x][new_y] = '+'
+        else:
+            new_map[new_x][new_y] = '@'
         return new_map
 
     def copy_map_with_player_and_box_position(self, new_x, new_y, beyond_x, beyond_y):
@@ -190,19 +199,22 @@ class GameState:
             return self
         print(f"Moving {direction}, New State Generated")
 
-        if self.is_empty((new_x, new_y)) or self.is_target((new_x, new_y)):
+        # if self.is_empty((new_x, new_y)) or self.is_target((new_x, new_y)):
+        if self.is_empty((new_x, new_y)):
             new_map = self.copy_map_with_player_position(new_x, new_y)
 
             return GameState(new_map, self.current_cost + 1)
 
         elif self.is_box((new_x, new_y)):
             beyond_x, beyond_y = new_x + dx, new_y + dy
-            if self.is_empty((beyond_x, beyond_y)) or self.is_target((beyond_x, beyond_y)):
+            # if self.is_empty((beyond_x, beyond_y)) or self.is_target((beyond_x, beyond_y)):            if self.is_empty((beyond_x, beyond_y)) or self.is_target((beyond_x, beyond_y)):
+            if self.is_empty((beyond_x, beyond_y)):
                 print(f"Pushing box from ({new_x}, {new_y}) to ({beyond_x}, {beyond_y})")
                 new_map = self.copy_map_with_player_and_box_position(new_x, new_y, beyond_x, beyond_y)
                 return GameState(new_map, self.current_cost + 1)
             else:
                 print("Box push invalid: Blocked")
+                pass
         return self
 
     def check_solved(self):

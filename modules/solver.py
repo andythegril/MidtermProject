@@ -40,6 +40,8 @@ class Solver(object):
             self.solution = self.greedy()
         elif self.strategy == 'custom':
             self.solution = self.custom()
+        elif self.strategy == 'testing':
+            self.solution = self.testing()
         else:
             raise Exception('Invalid strategy')
         self.time = time.time() - start_time
@@ -105,11 +107,12 @@ class Solver(object):
                     stack.append((new_state, path + [direction]))
         return None
 
-    def dfs_limited_depth(self, max_depth=10):
+    def dfs_limited_depth(self, max_depth=15):
         stack = [(self.initial_state, [], 0)]
-        visited = set()
+        visited = {}
         self.states_generated = 0
         self.expanded_nodes = 0
+
         while stack:
             state, path, depth = stack.pop()
             self.expanded_nodes += 1
@@ -123,11 +126,14 @@ class Solver(object):
                 self.moves_to_target = len(path)
                 return path
 
-            visited.add(state)
+            if state in visited and visited[state] <= depth:
+                continue
+            visited[state] = depth
+
             for direction in ['U', 'D', 'L', 'R']:
                 new_state = state.move(direction)
                 self.states_generated += 1
-                if new_state is not state and new_state not in visited:
+                if new_state and (new_state not in visited or depth + 1 < visited.get(new_state, float('inf'))):
                     stack.append((new_state, path + [direction], depth + 1))
         return None
 
@@ -135,7 +141,7 @@ class Solver(object):
     def astar(self):
         open_list = []
         heapq.heappush(open_list, (0 + self.initial_state.get_heuristic(), 0, self.initial_state, []))
-        visited = set()
+        visited = {}
         self.states_generated = 0
         self.expanded_nodes = 0
         while open_list:
@@ -143,17 +149,21 @@ class Solver(object):
             # ignore total_cost of the current value as it does not impact future decisions
             _, cost, state, path = heapq.heappop(open_list)
             self.expanded_nodes += 1
+
             if state.check_solved():
+                self.solution = path
                 self.moves_to_target = len(path)
                 return path
-            if state in visited:
+
+            if state in visited and visited[state] <= cost:
                 continue
-            visited.add(state)
+
+            visited[state] = cost
 
             for direction in ['U', 'D', 'L', 'R']:
                 new_state = state.move(direction)
-                self.states_generated += 1
-                if new_state not in visited:
+                if new_state and (new_state not in visited or cost + 1 < visited[new_state]):
+                    self.states_generated += 1
                     new_cost = cost + 1
                     total_cost = new_cost + new_state.get_heuristic()
                     heapq.heappush(open_list, (total_cost, new_cost, new_state, path + [direction]))
@@ -170,21 +180,24 @@ class Solver(object):
             cost, state, path = heapq.heappop(open_list)
             self.expanded_nodes += 1
 
-            if state in visited and state != self.initial_state:
+            # if state in visited and state != self.initial_state:
+            if state in visited:
                 continue
 
             visited.add(state)
 
             if state.check_solved():
                 self.moves_to_target = len(path)
+                self.solution = path
                 return path
 
             for direction in ['U', 'D', 'L', 'R']:
                 new_state = state.move(direction)
                 self.states_generated += 1
 
-                if new_state not in visited or new_state == self.initial_state:
-                    new_cost = cost + 1
+                # if new_state not in visited or new_state == self.initial_state:
+                if new_state and new_state not in visited:
+                    new_cost = state.current_cost + 1
                     new_path = path + [direction]
                     heapq.heappush(open_list, (new_cost, new_state, new_path))
         return None
@@ -206,16 +219,18 @@ class Solver(object):
             visited.add(state)
 
             if state.check_solved():
+                self.solution = path
                 self.moves_to_target = len(path)
                 return path
 
             for direction in ['U', 'D', 'L', 'R']:
                 new_state = state.move(direction)
-                self.states_generated += 1
 
-                if new_state not in visited:
-                    new_heuristic = new_state.get_heuristic()
-                    heapq.heappush(open_list, (new_heuristic, new_state, path + [direction]))
+                if new_state and new_state not in visited:
+                    self.states_generated += 1
+                new_heuristic = new_state.get_heuristic()
+                heapq.heappush(open_list, (new_heuristic, new_state, path + [direction]))
+        return None
 
     def custom(self):
         # Iterative-deepening A-star
@@ -272,6 +287,9 @@ class Solver(object):
                 min_total_cost = tmp
             node_path.pop(-1)
         return None, min_total_cost
+
+    def testing(self):
+        return ['U', 'U', ]
 
     def get_solution(self):
         return self.solution

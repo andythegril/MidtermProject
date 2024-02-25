@@ -91,6 +91,9 @@ class GameVisualization(object):
         pygame.display.flip()
 
     def draw_solution(self):
+        if self.solution is None:
+            print("No solution was found.")
+            return
         for i in range(len(self.solution)):
             self.game_state = self.game_state.move(self.solution[i])
             self.draw(self.solution[i])
